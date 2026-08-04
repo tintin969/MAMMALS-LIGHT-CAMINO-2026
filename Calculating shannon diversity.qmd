@@ -81,6 +81,8 @@ df4 <- df4 %>% mutate(across(where(is.numeric), ~ifelse(is.na(.x), 0, .x)))
 
 # Shannon diversity
 
+df4 \<- df4 %\>% filter(!row_number() %in% c(17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204)
+
 ```{r}
 
 #?diversity
@@ -101,8 +103,8 @@ df4$Shannon.Diversity <- df5 |> diversity(index = "shannon")
 #dpmt work :(
 #df_shdv <- df4 |> mutate(Shannon.Diversity == diversity(df5, index = "shannon"))
 
-head(df4)
-df4 <- df4 %>% filter(!row_number() %in% c(17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204)
+df4
+
 ```
 
 # Graph
