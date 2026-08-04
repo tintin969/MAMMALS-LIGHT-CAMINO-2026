@@ -9,11 +9,12 @@ editor: visual
 ```{r}
 #install.packages("dplyr")
 #install.packages("ggplot2")
-#install.package("vegan")
+#install.packages("vegan")
 #install.packages("brms")
 #install.packages("tidyverse")
 #install.packages("readxl")
-install.packages("usethis")
+#install.packages("usethis")
+#install.packages("rmarkdown")
 library(dplyr)
 library(ggplot2)
 library(vegan)
@@ -21,28 +22,87 @@ library(brms)
 library(tidyverse)
 library(readxl)
 library(usethis)
+library(rmarkdown)
+
+
+
+df <- read.csv("DATA collection_D_Gutierrez - Day1.csv")
+head(df)
 ```
 
 ## Connecting github
 
 ```{r}
 #setting to your user
-use_git_config(user.name = "tintin969")
+#use_git_config(user.name = "tintin969")
 #used to check what is connected
-git_sitrep()
+#git_sitrep()
 #creates a new token to connect to github
-usethis::create_github_token()
+#usethis::create_github_token()
 #setting which is connected with token code
-gitcreds::gitcreds_set()
+#gitcreds::gitcreds_set()
 #checking that it worked
-git_sitrep()
+#git_sitrep()
 ```
 
-You can add options to executable code like this
+# numeric
+
+1.  Make all numeric columns numeric
+2.  make all NA's into 0
 
 ```{r}
-#| echo: false
-2 * 2
+df4<-df |> mutate(across(c("Seeds.amt.eaten..g.","Neotoma", "Peromyscus", "Dipodomys", "Chaetodipus", "Otospermophilus", "Reithrodonomys", "Sylvilagus", "Bird", "Microtus", "other", "Raccoon"), as.numeric))
+
+is.numeric(df4$Seeds.amt.eaten..g.)
+df4 <- df4 %>% mutate(across(where(is.numeric), ~ifelse(is.na(.x), 0, .x)))
+
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+# Fixing condition columns
+
+1.  duplicating the column
+
+    ```{r}
+    df4$Condition_Copy <- df4$Condition..L.D.
+    ```
+
+2.  replace numbers with nothing
+
+    ```{r}
+    df4$Condition_Copy <- gsub("[0-9]", "", df4$Condition..L.D.)
+
+    #head(df$con)
+
+    ```
+
+# Shannon diversity
+
+```{r}
+
+#?diversity
+
+#calculate shannon diversity for each row
+
+
+
+#?mutate
+colnames(df4)
+
+#Select for species to calc
+df5 <- df4 |>  select(c("Neotoma", "Dipodomys", "Reithrodonomys","Microtus","Chaetodipus","Sylvilagus","Otospermophilus","Bird","other", "Raccoon","Peromyscus"))
+
+#try to calculate for diversity
+df4$Shannon.Diversity <- df5 |> diversity(index = "shannon")
+
+#dpmt work :(
+#df_shdv <- df4 |> mutate(Shannon.Diversity == diversity(df5, index = "shannon"))
+
+head(df4)
+```
+
+# Graph
+
+```{r}
+df4 |> ggplot(mapping = aes(x = Date, y = Shannon.Diversity, color = Condition_Copy)) + geom_point()+geom_jitter()
+```
