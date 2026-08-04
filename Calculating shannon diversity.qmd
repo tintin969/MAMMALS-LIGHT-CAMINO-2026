@@ -15,6 +15,8 @@ editor: visual
 #install.packages("readxl")
 #install.packages("usethis")
 #install.packages("rmarkdown")
+#install.packages("glmmTMB")
+#install.packages("Rtools")
 library(dplyr)
 library(ggplot2)
 library(vegan)
@@ -23,7 +25,8 @@ library(tidyverse)
 library(readxl)
 library(usethis)
 library(rmarkdown)
-
+library(glmmTMB)
+library(lme4)
 
 
 df <- read.csv("DATA collection_D_Gutierrez - Day1.csv")
@@ -99,10 +102,74 @@ df4$Shannon.Diversity <- df5 |> diversity(index = "shannon")
 #df_shdv <- df4 |> mutate(Shannon.Diversity == diversity(df5, index = "shannon"))
 
 head(df4)
+df4 <- df4 %>% 
+  filter(row_number() %% 17 != 0)
 ```
 
 # Graph
 
 ```{r}
-df4 |> ggplot(mapping = aes(x = Date, y = Shannon.Diversity, color = Condition_Copy)) + geom_point()+geom_jitter()
+#generate graph
+df4 |> ggplot(mapping = aes(x = Seed.amt.after..g., y = Shannon.Diversity, color = Condition_Copy)) + geom_point()+geom_jitter()
+#the animals tend to eat all the seed therefore it is a 0 inflat
+```
+
+# Linear Mixed-effects model
+
+linear mixed effects model:
+
+generalized linear mixed model gamma distribution with log link for positive continuous GUD
+
+beta distrubution if modeled as proportion of seed remaining
+
+0 inflated glmms use glmmTMB
+
+# GUD
+
+Giving up density (GUD) = Seed.amt.after..g.
+
+light = Condition_Copy
+
+Microhabitat = ? not relevant
+
+```{r}
+R
+library(lme4)
+library(lmerTest) # For p-values via Satterthwaite approximation
+library(DHARMa)   # For residual diagnostics
+
+# 1. Fit the Linear Mixed-Effects Model
+# Note: Log-transform GUD if residuals exhibit right-skew or non-constant variance
+gud_model <- lmer(
+  log(GUD + 1) ~ Light * Microhabitat + Temp_C + (1 | Station) + (1 | Night),
+  data = foraging_data
+)
+
+# 2. Model Summary and Type III ANOVA
+summary(gud_model)
+anova(gud_model, type = "3")
+
+# 3. Residual Diagnostics
+residuals_sim <- simulateResiduals(fittedModel = gud_model)
+plot(residuals_sim)
+
+
+```
+
+```{r}
+m.test <- 
+  brm(data = df4, # Give the model the pie_crab data
+      # Choose a gaussian (normal) distribution
+      family = gaussian,
+      # Specify the model here. 
+      Seed.amt.after..g. ~ Condition_Copy + 1,
+      # Here's where you specify parameters for executing the Markov chains
+      # We're using similar to the defaults, except we set cores to 4 so the analysis runs faster than the default of 1
+      iter = 2000, warmup = 1000, chains = 4, cores = 4,
+      # Setting the "seed" determines which random numbers will get sampled.
+      # In this case, it makes the randomness of the Markov chain runs reproducible 
+      # (so that both of us get the exact same results when running the model)
+      seed = 4,
+      # Save the fitted model object as output - helpful for reloading in the output later
+      file = "output/m.test2")
 ```
