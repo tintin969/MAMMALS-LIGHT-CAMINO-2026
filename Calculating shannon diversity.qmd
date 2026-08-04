@@ -102,8 +102,7 @@ df4$Shannon.Diversity <- df5 |> diversity(index = "shannon")
 #df_shdv <- df4 |> mutate(Shannon.Diversity == diversity(df5, index = "shannon"))
 
 head(df4)
-df4 <- df4 %>% 
-  filter(row_number() %% 17 != 0)
+df4 <- df4 %>% filter(!row_number() %in% c(17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204)
 ```
 
 # Graph
@@ -112,6 +111,31 @@ df4 <- df4 %>%
 #generate graph
 df4 |> ggplot(mapping = aes(x = Seed.amt.after..g., y = Shannon.Diversity, color = Condition_Copy)) + geom_point()+geom_jitter()
 #the animals tend to eat all the seed therefore it is a 0 inflat
+```
+
+```{r}
+## observations vs light (peromysus)
+df4 |> ggplot(mapping = aes(x = Condition_Copy, y = Peromyscus, color = Condition_Copy)) + geom_boxplot() + scale_y_log10()
+```
+
+```{r}
+# observations vs light dipodymys
+df4 |> ggplot(mapping = aes(x = Condition_Copy, y = Dipodomys, color = Condition_Copy)) + geom_boxplot() + scale_y_log10()
+```
+
+```{r}
+#observaitons vs ligth chaetodipus
+df4 |> ggplot(mapping = aes(x = Condition_Copy, y = Chaetodipus, color = Condition_Copy)) + geom_boxplot() + scale_y_log10()
+```
+
+```{r}
+#seed amount eaten vs condition
+df4 |> ggplot(mapping = aes(x = Condition_Copy, y = Seeds.amt.eaten..g., color = Condition_Copy)) + geom_boxplot() + scale_y_log10()
+```
+
+```{r}
+# visits vs condition
+df4 |> ggplot(mapping = aes(x = Condition_Copy, y =  cbind(Peromyscus,Dipodomys,Chaetodipus) , color = Condition_Copy)) + geom_boxplot() + scale_y_log10()
 ```
 
 # Linear Mixed-effects model
